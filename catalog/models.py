@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 
 
 def upload_to(instance,filename):
-    return 'products/{0}/{1}'.format(instance.id,filename)
+    return 'products/{0}/{1}'.format(instance.product.id,filename)
+
 class Category(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100,unique=True)
@@ -46,7 +47,7 @@ class ProductVariant(models.Model):
     is_active = models.BooleanField(default=True)
     
     def __str__(self):
-        return f"{self.product.name} - {self.sku or 'variant'}"
+        return f"{self.product.name} - { 'variant'}"
 
 class ProductImage(models.Model):
 
