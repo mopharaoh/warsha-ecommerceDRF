@@ -1,10 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from ecommerceDRF.settings import AUTH_USER_MODEL as User
 
 
-def upload_to(instance,filename):
-    return 'products/{0}/{1}'.format(instance.product.id,filename)
-
+def upload_to(instance, filename):
+    product_id = instance.variant.product.id if instance.variant.product else 'temp'
+    return f'products/{product_id}/{filename}'
 class Category(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100,unique=True)
@@ -20,7 +21,7 @@ class Category(models.Model):
 
 class Brand(models.Model):
     name = models.CharField(max_length=100)
-    owner = models.ForeignKey(User,on_delete=models.CASCADE)
+    owner = models.ForeignKey(User,on_delete=models.CASCADE,unique=True)
     def __str__(self):
         return self.name
     
@@ -51,8 +52,8 @@ class ProductVariant(models.Model):
 
 class ProductImage(models.Model):
 
-        product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='images')
+        variant = models.ForeignKey(ProductVariant,on_delete=models.CASCADE,related_name='images')
         image = models.ImageField(upload_to=upload_to,default="default.jpg")
 
         def __str__(self):
-            return self.product.name
+            return f"{self.variant.product}-{self.variant}"
