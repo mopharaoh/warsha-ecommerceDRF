@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django_filters',
     'accounts',
     'rest_framework_simplejwt.token_blacklist',
+    'cart',
 
 ]
 
