@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'cart',
     'Order',
+    'payment',
 
 ]
 
@@ -200,4 +201,5 @@ SIMPLE_JWT = {
     "CHECK_USER_IS_ACTIVE": True,
 }
 
-
+STRIPE_PUBLIC_KEY = 'pk_test_51TC5QLPUFPTta4latJ4ti6mLZfQ69qlqfywi8wFq79OXUaribPuLjuLKWqBA5PX8Fca5msllILW2IUXznO90uYXZ00WOyRmroI'
+STRIPE_SECRET_KEY = 'sk_test_51TC5QLPUFPTta4laEB8vrv0Op4kUPzUcGRioqwIgQVtt9Qre7ebw542c9Tbzl2iBhBxYHPuRVlcnzpPIXxgJj0V700M89bHe82'

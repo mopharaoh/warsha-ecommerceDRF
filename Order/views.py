@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import Order,OrderItem
-from .serializers import OrderSerializer,CheckoutSerializer
+from .serializers import OrderSerializer,CheckoutSerializer,OrderUpdateSerializer
 from cart.models import Cart,CartItem
 from catalog.models import ProductVariant
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +9,8 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db import transaction
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView
+from decimal import Decimal
 
 class CheckoutOrder(APIView):
     permission_classes = [IsAuthenticated]
@@ -19,6 +20,7 @@ class CheckoutOrder(APIView):
         if serializer.is_valid():
             
             shipping_address = serializer.validated_data['shipping_address']
+            shipping_phone = serializer.validated_data.get('shipping_phone',request.user.phone)
             user=request.user
             try:
                 cart=Cart.objects.get(user=user)
@@ -30,11 +32,13 @@ class CheckoutOrder(APIView):
             
             try:
                 with transaction.atomic():
-
+                    shipping_cost = Decimal(50.00)
                     order = Order.objects.create(
                         user=user,
-                        total_amount=cart.total_price,
-                        shipping_address=shipping_address
+                        shipping_price=shipping_cost,
+                        total_amount=cart.total_price + shipping_cost,
+                        shipping_address=shipping_address,
+                        shipping_phone=shipping_phone
                     )
             
                     for cart_item in cart.items.all():
@@ -69,3 +73,31 @@ class OrderHistory(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Order.objects.filter(user=user).order_by('-created_at')
+    
+
+class OrderUpdate(UpdateAPIView):
+    serializer_class = OrderUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+    
+    def perform_update(self, serializer):
+        
+        order = self.get_object()
+
+        if order.status != 'Pending':
+            raise ValidationError({"error": "You cannot update or cancel this order because it is already being processed or shipped."})
+        new_status = serializer.validated_data.get('status')
+        if new_status and new_status!= 'Cancelled':
+            raise ValidationError({"error": "You are only allowed to cancel the order."})
+        if new_status == 'Cancelled' and order.status != 'Cancelled':
+            with transaction.atomic():
+                for item in order.items.all():
+                    if item.variant:
+                        item.variant.stock += item.quantity
+                        item.variant.save()
+                serializer.save()
+        else:
+            serializer.save()

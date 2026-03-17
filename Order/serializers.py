@@ -19,3 +19,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class CheckoutSerializer(serializers.Serializer):
     shipping_address = serializers.CharField(max_length=500)
+    shipping_phone = serializers.CharField(max_length=20,required=False)
+
+
+class OrderUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model =  Order
+        fields = ['shipping_address','shipping_phone','status']
