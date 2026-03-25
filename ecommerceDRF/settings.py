@@ -203,3 +203,15 @@ SIMPLE_JWT = {
 
 STRIPE_PUBLIC_KEY = 'pk_test_51TC5QLPUFPTta4latJ4ti6mLZfQ69qlqfywi8wFq79OXUaribPuLjuLKWqBA5PX8Fca5msllILW2IUXznO90uYXZ00WOyRmroI'
 STRIPE_SECRET_KEY = 'sk_test_51TC5QLPUFPTta4laEB8vrv0Op4kUPzUcGRioqwIgQVtt9Qre7ebw542c9Tbzl2iBhBxYHPuRVlcnzpPIXxgJj0V700M89bHe82'
+STRIPE_WEBHOOK_SECRET = 'whsec_7f3f552055bb5a7279ffa791acf81d52dc0eb27a87bee1dbecf2bf9b444e667b'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465  
+EMAIL_USE_SSL = True 
+EMAIL_USE_TLS = False
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

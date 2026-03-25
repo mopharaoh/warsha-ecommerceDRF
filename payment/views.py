@@ -8,8 +8,69 @@ from django.shortcuts import get_object_or_404
 from Order.models import Order
 from .models import Payment
 import stripe
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.core.mail import send_mail
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,sig_header,endpoint_secret
+        )
+    except ValueError as e :
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+    
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        order_id = session.get('metadata',{}).get('order_id')
+        if order_id:
+            try:
+                payment = Payment.objects.get(order__id=order_id)
+                payment.status = 'Successful'
+                payment.save()
+                
+                order=Order.objects.get(id=order_id)
+                order.status = 'Processing'
+                order.save()
+
+                subject = f"Order #{order.id} Confirmed - Warsha"
+                
+                message = f"""
+                Hello {order.user.user_name},
+                
+                Thank you for your purchase!
+                We have successfully received your payment of {payment.amount} EGP.
+                Your order is now being processed and will be shipped to:
+                {order.shipping_address}
+                
+                Order Details:
+                Status: {order.status}
+                Order ID: {order.id} 
+                
+                Thanks for shopping with us!
+                """
+                send_mail(subject=subject,
+                          message=message,
+                          from_email=settings.EMAIL_HOST_USER,
+                          recipient_list=[order.user.email],
+                          fail_silently=False)
+                print(f"✅ Payment successful and Email sent to {order.user.email}!")
+                print(f"✅ Payment successful for Order {order_id}")
+            except (Payment.DoesNotExist, Order.DoesNotExist):
+                print("Order or Payment not found!")
+    return HttpResponse(status=200)
+
 
 class CreateStripeCheckout(APIView):
     permission_classes = [IsAuthenticated]
