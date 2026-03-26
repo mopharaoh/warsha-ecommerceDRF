@@ -1,11 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Category,Product,Brand,ProductImage,ProductVariant
+from .models import Category,Product,Brand,ProductImage,ProductVariant,WishList
 from .serializers import( ProductSerializer,VariantSerializer,
                          ImageSerializer,ProductDetailSerializer,
-                         CategorySerializer,BrandSerializer,ProductCreateSerializer)
-from rest_framework import generics
+                         CategorySerializer,BrandSerializer,
+                         ProductCreateSerializer,WishListSerializer)
+from rest_framework import generics,status
 from django_filters.rest_framework import DjangoFilterBackend 
 from rest_framework.permissions import AllowAny,BasePermission,SAFE_METHODS,IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -97,3 +98,30 @@ class ImageCreate(generics.CreateAPIView):
     queryset = ProductImage.objects.all()
     serializer_class =ImageSerializer
     parser_classes = [MultiPartParser, FormParser]
+
+class UserWishListView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = WishListSerializer
+
+    def get_object(self):
+        wishlist, created = WishList.objects.get_or_create(user=self.request.user)
+        return wishlist
+
+class ToggleWishListView(APIView):
+    Permission_classes = [IsAuthenticated]
+
+    def post(self,request,product_id):
+
+        wishlist,created = WishList.objects.get_or_create(user=request.user)
+        product = get_object_or_404(Product,id=product_id)
+
+        if product in wishlist.products.all():
+            wishlist.products.remove(product)
+            action = 'removed'
+            message = "Product removed from your wishlist."
+        else:
+            wishlist.products.add(product)
+            action = 'added'
+            message = "Product added to your wishlist."
+
+        return Response({"success":True,"action":action,"message":message},status=status.HTTP_200_OK)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product,Brand ,ProductImage,ProductVariant,Category
+from .models import Product,Brand ,ProductImage,ProductVariant,Category,WishList
 from django.db import transaction
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -116,7 +116,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError('Product must have at least one variant.')
         return value
-        
+
+class WishListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=WishList
+        fields = '__all__'
+        depth = 1
+
 #Nested Update 
 # class ProductUpdateSerializer(serializers.ModelSerializer):
 #     variants=VariantSerializer(many=True)
