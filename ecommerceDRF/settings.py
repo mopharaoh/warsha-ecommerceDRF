@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'cart',
     'Order',
     'payment',
+    'drf_spectacular',
 
 ]
 
@@ -148,8 +149,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS' : [
     'django_filters.rest_framework.DjangoFilterBackend',
     'rest_framework.filters.SearchFilter',
-    'rest_framework.filters.OrderingFilter',
-]
+    'rest_framework.filters.OrderingFilter',],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -215,3 +216,10 @@ EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Warsha E-Commerce API',
+    'DESCRIPTION': 'Documentation for my awesome E-commerce backend.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

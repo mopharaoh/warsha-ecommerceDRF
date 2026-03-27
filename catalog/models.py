@@ -1,11 +1,13 @@
 from django.db import models
 # from django.contrib.auth.models import User
 from ecommerceDRF import settings
-
+from django.core.validators import MinValueValidator,MaxValueValidator
+from django.db.models import Avg
 
 def upload_to(instance, filename):
     product_id = instance.variant.product.id if instance.variant.product else 'temp'
     return f'products/{product_id}/{filename}'
+
 class Category(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100,unique=True)
@@ -21,7 +23,7 @@ class Category(models.Model):
 
 class Brand(models.Model):
     name = models.CharField(max_length=100)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,unique=True)
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     def __str__(self):
         return self.name
     
@@ -34,6 +36,17 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
 
+    @property
+    def average_rating(self):
+        avg = self.reviews.aggregate(average=Avg('rating'))['average']
+        if avg is not None:
+            return round(avg,1)
+        return 0.0
+    
+    @property
+    def total_reviews(self):
+        return self.reviews.count()
+    
     def __str__(self):
         return self.name
 
@@ -67,3 +80,17 @@ class WishList(models.Model):
 
     def __str__(self):
         return f"{self.user.user_name}'s Wishlist"
+    
+class Review(models.Model):
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='reviews')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    rating = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    comment = models.TextField(blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('product','user')
+    
+    def __str__(self):
+        return f"{self.user.user_name} - {self.product.name} - {self.rating} Stars"

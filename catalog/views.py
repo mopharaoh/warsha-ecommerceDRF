@@ -1,7 +1,7 @@
 from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Category,Product,Brand,ProductImage,ProductVariant,WishList
+from .models import Category,Product,Brand,ProductImage,ProductVariant,WishList,Review
 from .serializers import( ProductSerializer,VariantSerializer,
                          ImageSerializer,ProductDetailSerializer,
                          CategorySerializer,BrandSerializer,
@@ -10,6 +10,7 @@ from rest_framework import generics,status
 from django_filters.rest_framework import DjangoFilterBackend 
 from rest_framework.permissions import AllowAny,BasePermission,SAFE_METHODS,IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from Order.models import Order
 
 class IsBrandOwner(BasePermission):
     message='Editing product is restricted to the brand owner only.'
@@ -125,3 +126,56 @@ class ToggleWishListView(APIView):
             message = "Product added to your wishlist."
 
         return Response({"success":True,"action":action,"message":message},status=status.HTTP_200_OK)
+
+class ReviewRatingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,product_id):
+        product = get_object_or_404(Product,id=product_id)
+        user=request.user
+        
+        if hasattr(product,"owner") and product.owner == user:
+            return Response({
+                "error":"You cannot rate your own Product."
+            })
+        has_bought = Order.objects.filter(user=user,
+                                          status__in=['Processing', 'Shipped', 'Delivered', 'Successful'],
+                                   items__variant__product=product).exists()
+
+        if not has_bought:
+            return Response({
+                "error":"You must buy this product first to leave a review."
+            },status=status.HTTP_403_FORBIDDEN)
+
+        rating = request.data.get("rating")
+        comment = request.data.get("comment","")
+
+        if not rating or int(rating)< 1 or int(rating) > 5:
+            return Response({"error":"Please provide a valid rating between 1 and 5."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        review , created = Review.objects.update_or_create(user=user,
+                                                           product=product,
+                                                           defaults={
+                                                                    'rating': rating,
+                                                                    'comment': comment})
+        message = "Review added successfully!" if created else "Review updated successfully!"
+
+        return Response({"success": True, "message": message}, status=status.HTTP_200_OK)
+    
+
+class DeleteReviewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, product_id):
+        try:
+            review = Review.objects.get(product=product_id,user=request.user)
+            review.delete()
+
+            return Response({"success": True, "message": "Review deleted successfully."}, 
+                status=status.HTTP_200_OK)
+        except Review.DoesNotExist:
+            return Response(
+                {"error": "You haven't reviewed this product yet."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )

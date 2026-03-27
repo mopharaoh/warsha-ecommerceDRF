@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product,Brand ,ProductImage,ProductVariant,Category,WishList
+from .models import Product,Brand ,Review,ProductImage,ProductVariant,Category,WishList
 from django.db import transaction
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -12,11 +12,24 @@ class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = '__all__'
-        
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.user_name', read_only=True)
+    class Meta:
+        model = Review
+        fields = ['id','user_name','rating','comment','created_at']
+
+
 class ProductSerializer(serializers.ModelSerializer):
+    reviews = ReviewSerializer(many=True,read_only=True)
+    average_rating = serializers.ReadOnlyField()
+    total_reviews = serializers.ReadOnlyField()
+
     class Meta:
         model = Product
-        fields = ['id', 'name', 'category', 'brand', 'is_bundle', 'description', 'is_active']
+        fields = ['id', 'name', 'category', 'brand', 'is_bundle', 'description', 'is_active',
+                  'average_rating', 'total_reviews', 'reviews']
+
     
     # def validate_brand(self, value):
     #     request = self.context['request']
@@ -77,10 +90,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     variants=VariantSerializer(many=True,read_only=True)
     # images=ImageSerializer(many=True,read_only=True)
     
+    reviews = ReviewSerializer(many=True, read_only=True)
+    average_rating = serializers.ReadOnlyField()
+    total_reviews = serializers.ReadOnlyField()
 
     class Meta:
         model=Product
-        fields = ['id','name','brand','description','variants']
+        fields = ['id','name','brand','description','average_rating', 'total_reviews', 'reviews','variants']
 
 class NestedVariantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -120,7 +136,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 class WishListSerializer(serializers.ModelSerializer):
     class Meta:
         model=WishList
-        fields = '__all__'
+        fields = ['products','created_at','updated_at']
         depth = 1
 
 #Nested Update 
