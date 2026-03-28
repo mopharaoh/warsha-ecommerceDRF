@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+from django.utils import timezone
+import datetime
 
 class CustomAccountManager(BaseUserManager):
 
@@ -49,3 +50,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.user_name
+
+class PasswordResetOTP(models.Model):
+
+    user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='otp')
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    
+    def is_valid(self):
+        expiration_time = self.created_at + datetime.timedelta(minutes=10)
+        return timezone.now() < expiration_time
+    
+    def __str__(self):
+        return f"{self.user.user_name} - {self.otp_code}"

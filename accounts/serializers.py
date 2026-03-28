@@ -14,6 +14,12 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
             'is_vendor': self.user.is_vendor
         }
         return data
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'user_name', 'first_name', 'last_name', 'phone', 'address']
+        read_only_fields = ['id' , 'email' , 'user_name']
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
