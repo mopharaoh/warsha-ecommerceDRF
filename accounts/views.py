@@ -14,6 +14,7 @@ from ecommerceDRF import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 import os
+from .tasks import send_otp_email_task
 
 class RegisterView(CreateAPIView):
     serializer_class = RegisterSerializer
@@ -80,13 +81,10 @@ class RequestOTPView(APIView):
         PasswordResetOTP.objects.update_or_create(user=user,defaults={'otp_code':code})
         subject = f"{user.user_name}'s OTP for Password reset"
         message = f"Hello here is your OTP >> {code}\n\nThis code is valid for 10 minutes."
-        send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[email],
-                    fail_silently=False)
-        return Response({"message": "OTP sent successfully to your email."}, status=status.HTTP_200_OK)
+        
+        send_otp_email_task.delay(subject,message,email,code)
+        
+        return Response({"message": "OTP sent successfully to your email..."}, status=status.HTTP_200_OK)
 
 
 class VerifyOTPView(APIView):
