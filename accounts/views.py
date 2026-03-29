@@ -11,7 +11,9 @@ from .models import User,PasswordResetOTP
 import random
 from django.core.mail import send_mail
 from ecommerceDRF import settings
-
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
 
 class RegisterView(CreateAPIView):
     serializer_class = RegisterSerializer
@@ -19,6 +21,41 @@ class RegisterView(CreateAPIView):
 
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenSerializer
+
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+
+        token = request.data.get('id_token')
+
+        if not token:
+            return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            client_id = os.environ.get('GOOGLE_CLIENT_ID')
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+            
+            
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+            base_username = email.split('@')[0]
+            user = User.objects.filter(email=email).first()
+            if not user:
+                user = User.objects.create(email=email,
+                                    user_name=base_username,
+                                    first_name=first_name,
+                                    last_name=last_name
+                                    )
+                user.set_unusable_password()
+                user.save()
+            refresh = RefreshToken.for_user(user)
+            return Response({"refresh_token":str(refresh),
+                             "access_token":str(refresh.access_token)},
+                             status=status.HTTP_200_OK)
+
+        except ValueError:
+            return Response({"error": "Invalid Google token"}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -132,7 +169,7 @@ class ChangePasswordView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = ()
+    
 
     def post(self, request):
         try:
