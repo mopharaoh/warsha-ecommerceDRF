@@ -10,7 +10,7 @@ A comprehensive E-commerce platform built with Django REST Framework (DRF), feat
 - Google OAuth2 login integration
 - Password reset via OTP (email-based)
 - User profiles with vendor capabilities
-![alt text](image.png)
+![alt text](https://github.com/user-attachments/assets/b30f5870-657a-43b8-9024-cc3c2367dcad)
 
 ### Product Catalog
 - Hierarchical category system
@@ -20,7 +20,7 @@ A comprehensive E-commerce platform built with Django REST Framework (DRF), feat
 - Product reviews and ratings (Users can review only purchased products - Average rating calculated dynamically)
 - Wishlist functionality (Add/remove products from wishlist and one wishlist per user)
 
-![product detail](image-1.png)
+![product detail](https://github.com/user-attachments/assets/5d2ffaee-b20a-4f6e-9f84-48e3269033a5)
 
 ### Shopping Cart
 - Persistent cart per user
@@ -29,7 +29,7 @@ A comprehensive E-commerce platform built with Django REST Framework (DRF), feat
 - Brand-specific and global coupons
 - Automatic price calculations with discounts
 
-![Cart details response](image-2.png)
+![Cart details response](https://github.com/user-attachments/assets/cde68d7b-9ee5-492b-97e8-22310524b750)
 
 ### Order Management
 - Order creation from cart
@@ -37,7 +37,7 @@ A comprehensive E-commerce platform built with Django REST Framework (DRF), feat
 - Order history and details
 - Shipping address and phone management
 
-![Order creation response before checkout](image-3.png)
+![Order creation response before checkout](https://github.com/user-attachments/assets/85f7a652-c228-4e5f-8847-cebbc0beee3e)
 
 ### Payment System
 - Multiple payment methods (Credit Card, Cash on Delivery)
@@ -47,24 +47,24 @@ A comprehensive E-commerce platform built with Django REST Framework (DRF), feat
 - Payment status tracking and Automatic order status update after payment
 - Email confirmation sent after successful payment
 
-![Stripe checkout session URL](image-4.png)
+![Stripe checkout session URL](https://github.com/user-attachments/assets/cdd9ba14-7abc-46c7-833a-2c1dd6cd2505)
 
-![Payment on stripe](image-5.png)
+![Payment on stripe](https://github.com/user-attachments/assets/9c09fea1-4afd-4723-8dae-d707b3419aae)
 
-![Changing order status after payment process](image-7.png)
+![Changing order status after payment process](https://github.com/user-attachments/assets/3a1ef061-af6d-487f-becc-155b2e39a3f4)
 
 ### Email System
 - OTP email for password reset
 - Order confirmation email after payment
 - Background tasks handled using Celery + Redis as message broker
 
-![OTP email](image-8.png)
+![OTP email](https://github.com/user-attachments/assets/0d74ca07-4d1b-4518-9a12-dc2d92b37984)
 
-![Celery in OTP request process background](image-9.png)
+![Celery in OTP request process background](https://github.com/user-attachments/assets/3ba7707e-60c2-4449-aa5c-27d0c56aa6fb)
 
-![Order's payment email](image-10.png)
+![Order's payment email](https://github.com/user-attachments/assets/97290b9e-82a6-4ab2-ab1a-c63c7254ed9e)
 
-![Celery in payment process background](image-6.png)
+![Celery in payment process background](https://github.com/user-attachments/assets/cfb6a11c-f570-4527-b636-16980a5d23bb)
 
 ### Additional Features
 - API documentation with Swagger UI
